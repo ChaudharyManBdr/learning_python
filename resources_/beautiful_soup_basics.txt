@@ -1,0 +1,90 @@
+First, we need to import all the libraries that we are going to use.
+
+# import libraries
+import urllib2
+from bs4 import BeautifulSoup
+
+Next, declare a variable for the url of the page.
+
+# specify the url
+quote_page = ‘http://www.bloomberg.com/quote/SPX:IND'
+
+Then, make use of the Python urllib2 to get the HTML page of the url declared.
+
+# query the website and return the html to the variable ‘page’
+page = urllib2.urlopen(quote_page)
+
+Finally, parse the page into BeautifulSoup format so we can use BeautifulSoup to work on it.
+
+# parse the html using beautiful soup and store in variable `soup`
+soup = BeautifulSoup(page, ‘html.parser’)
+
+Now we have a variable, soup, containing the HTML of the page. Here’s where we can start coding the part that extracts the data.
+
+Remember the unique layers of our data? BeautifulSoup can help us get into these layers and extract the content with find(). In this case, since the HTML class name is unique on this page, we can simply query <div class="name">.
+
+# Take out the <div> of name and get its value
+name_box = soup.find(‘h1’, attrs={‘class’: ‘name’})
+
+After we have the tag, we can get the data by getting its text.
+
+name = name_box.text.strip() # strip() is used to remove starting and trailing
+print name
+
+Similarly, we can get the price too.
+
+# get the index price
+price_box = soup.find(‘div’, attrs={‘class’:’price’})
+price = price_box.text
+print price
+
+
+Export to Excel CSV
+Now that we have the data, it is time to save it. The Excel Comma Separated Format is a nice choice. It can be opened in Excel so you can see the data and process it easily.
+
+But first, we have to import the Python csv module and the datetime module to get the record date. Insert these lines to your code in the import section.
+
+import csv
+from datetime import datetime
+At the bottom of your code, add the code for writing data to a csv file.
+
+# open a csv file with append, so old data will not be erased
+with open(‘index.csv’, ‘a’) as csv_file:
+ writer = csv.writer(csv_file)
+ writer.writerow([name, price, datetime.now()])
+Now if you run your program, you should able to export an index.csv file, which you can then open with Excel, where you should see a line of data.
+
+
+
+Multiple Indices
+So scraping one index is not enough for you, right? We can try to extract multiple indices at the same time.
+
+First, modify the quote_page into an array of URLs.
+
+quote_page = [‘http://www.bloomberg.com/quote/SPX:IND', ‘http://www.bloomberg.com/quote/CCMP:IND']
+Then we change the data extraction code into a for loop, which will process the URLs one by one and store all the data into a variable data in tuples.
+
+# for loop
+data = []
+for pg in quote_page:
+ # query the website and return the html to the variable ‘page’
+ page = urllib2.urlopen(pg)
+# parse the html using beautiful soap and store in variable `soup`
+ soup = BeautifulSoup(page, ‘html.parser’)
+# Take out the <div> of name and get its value
+ name_box = soup.find(‘h1’, attrs={‘class’: ‘name’})
+ name = name_box.text.strip() # strip() is used to remove starting and trailing
+# get the index price
+ price_box = soup.find(‘div’, attrs={‘class’:’price’})
+ price = price_box.text
+# save the data in tuple
+ data.append((name, price))
+Also, modify the saving section to save data row by row.
+
+# open a csv file with append, so old data will not be erased
+with open(‘index.csv’, ‘a’) as csv_file:
+ writer = csv.writer(csv_file)
+ # The for loop
+ for name, price in data:
+ writer.writerow([name, price, datetime.now()])
+Rerun the program and you should be able to extract two indices at the same time!
